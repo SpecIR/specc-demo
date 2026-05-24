@@ -80,11 +80,25 @@ jobs:
           path: build/specir.db
           if-no-files-found: error
 
+      - name: Stage Pages site (flatten figures into webroot)
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        run: |
+          rm -rf _site
+          mkdir -p _site
+          cp -r build/www/. _site/
+          [ -d build/diagrams ] && cp -r build/diagrams _site/ || true
+          [ -d build/charts ]   && cp -r build/charts   _site/ || true
+          # SpecCompiler emits image refs as ../diagrams/ and ../charts/
+          # (relative to www/). For Pages we serve from a flat root, so
+          # rewrite the refs to be relative to the site root.
+          find _site -maxdepth 1 -name '*.html' \
+            -exec sed -i 's|\.\./diagrams/|diagrams/|g; s|\.\./charts/|charts/|g' {} +
+
       - name: Upload Pages artifact
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build/www/
+          path: _site/
 
   deploy-pages:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
