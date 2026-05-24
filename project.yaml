@@ -1,0 +1,51 @@
+# SpecCompiler demo project — sw_docs model.
+# HLR, VC, LLR, DD, traces_to, traceability_matrix and the PlantUML
+# float type all come from the model unchanged; the demo only edits
+# source files.
+#
+# Validation suppressions disable sw_docs policies that depend on
+# object types this small demo does not use (SF, FD, CSC, CSU, TR)
+# or that would conflict with the demo's simplifications:
+#  - LLRs are not yet covered by VCs.
+#  - The architectural-overview PlantUML diagram has no parent object.
+# Active checks: traceability_hlr_to_vc, traceability_vc_to_hlr,
+# plus all generic checks (cast, enum, missing-required, etc.).
+
+project:
+  code: DEMO_THERMAL
+  name: SpecCompiler demo
+
+template: sw_docs
+output_dir: build/
+
+doc_files:
+  - srs.md
+  - sdd.md
+  - svc.md
+
+outputs:
+  - format: html5
+    path: www/{spec_id}.html
+  - format: docx
+    path: docx/{spec_id}.docx
+
+html5:
+  number_sections: true
+  table_of_contents: true
+  standalone: true
+  embed_resources: true
+
+validation:
+  traceability_hlr_allocation: ignore
+  traceability_llr_to_vc: ignore
+  traceability_tr_to_vc: ignore
+  traceability_fd_to_csc: ignore
+  traceability_fd_to_csu: ignore
+  traceability_csc_to_fd: ignore
+  traceability_csu_to_fd: ignore
+  float_orphan: ignore
+
+logging:
+  level: info
+  format: console
+  color: true

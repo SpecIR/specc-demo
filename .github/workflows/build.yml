@@ -1,0 +1,133 @@
+# Build on every push and PR.
+#
+# - Pulls ghcr.io/specir/speccompiler:latest (bundles Lua, Pandoc,
+#   PlantUML, the sw_docs model, and the reqif.specir Python CLI).
+# - Builds HTML and DOCX via the in-container core binary.
+# - Exports ReqIF for each spec (srs, sdd, svc).
+# - Uploads HTML, DOCX, ReqIF, and the SQLite IR as workflow artifacts.
+# - On pushes to main AND on tag pushes: deploys HTML to GitHub Pages
+#   (last deploy wins; the `pages` concurrency group serializes them).
+# - On tag pushes: also creates a GitHub Release with the DOCX and
+#   ReqIF attached.
+
+name: Build
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: ghcr.io/specir/speccompiler:latest
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Pull SpecCompiler image
+        run: docker pull "$IMAGE"
+
+      - name: Build specs and export ReqIF
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace \
+            -e PYTHONPATH=/opt/speccompiler/vendor/python \
+            "$IMAGE" \
+            bash -c '
+              set -e
+              /opt/speccompiler/bin/speccompiler-core project.yaml
+              mkdir -p build/reqif
+              for spec in srs sdd svc; do
+                python3 -m reqif.specir export \
+                  --db build/specir.db \
+                  --output "build/reqif/${spec}.reqif" \
+                  --spec-id "${spec}"
+              done
+            '
+
+      - name: Upload HTML artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: html
+          path: build/www/
+          if-no-files-found: error
+
+      - name: Upload DOCX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docx
+          path: build/docx/
+          if-no-files-found: error
+
+      - name: Upload ReqIF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: reqif
+          path: build/reqif/
+          if-no-files-found: error
+
+      - name: Upload SpecIR database artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: specir-db
+          path: build/specir.db
+          if-no-files-found: error
+
+      - name: Upload Pages artifact
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/www/
+
+  deploy-pages:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download DOCX artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docx
+          path: dist/
+
+      - name: Download ReqIF artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: reqif
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.docx
+            dist/*.reqif
+          generate_release_notes: true
+          fail_on_unmatched_files: true
