@@ -29,6 +29,19 @@
 
 > traceability: [HLR-042](@) [HLR-043](@)
 
+## VC: Verify thermal-state classification @VC-021
+
+> objective: Exercise the classifier across the boundary readings (<=60, 60-80, >80 C) and verify the resulting state matches the decision table.
+
+> verification_method: Test
+
+> pass_criteria:
+> - Each boundary reading produces the state declared in tbl-thermal-mode.
+
+> status: Draft
+
+> traceability: [HLR-044](@)
+
 ## Verification Matrix
 
 `traceability_matrix:`

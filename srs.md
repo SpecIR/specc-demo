@@ -39,3 +39,35 @@ entering safe mode.
 > priority: High
 
 > rationale: Provide reviewable fault evidence.
+
+## HLR: Classify thermal state by reading @HLR-044
+
+The controller shall map each temperature reading to a thermal-state
+classification according to the decision table below.
+
+```list-table:tbl-thermal-mode{caption="Thermal-state classification by temperature reading."}
+> header-rows: 1
+> aligns: l,l,l
+
+* - Condition
+  - Previous state
+  - Resulting state
+* - reading <= 60 C
+  - any
+  - Normal
+* - 60 C < reading <= 80 C
+  - Normal
+  - Caution
+* - 60 C < reading <= 80 C
+  - Caution or Safe Mode
+  - unchanged
+* - reading > 80 C
+  - any
+  - Safe Mode
+```
+
+> status: Draft
+
+> priority: Mid
+
+> rationale: A pure-function classification keeps the state machine deterministic and easy to test in isolation.

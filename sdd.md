@@ -52,6 +52,17 @@ end
 
 The temperature sensor is polled at a fixed cadence from the
 Controller rather than driven by interrupts on threshold crossings.
+The per-tick budget below allocates the 10 ms polling window across
+the sensor read, threshold check, log dispatch, safety dispatch, and
+remaining slack for jitter.
+
+```chart:chart-latency-budget{caption="Per-tick latency budget for the 10 ms polling loop (ms)."}
+{
+  "xAxis": { "type": "category", "data": ["sensor read", "threshold check", "log dispatch", "safety dispatch", "slack"] },
+  "yAxis": { "type": "value", "name": "ms" },
+  "series": [{ "type": "bar", "data": [2, 1, 1.5, 2.5, 3], "itemStyle": { "color": "#5470c6" } }]
+}
+```
 
 > rationale: Polling avoids interrupt-storm risk when the reading hovers near the threshold and keeps timing analysis simple — a single periodic tick covers both the sensor read and the dispatch to the Safety Manager.
 
