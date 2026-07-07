@@ -1,14 +1,12 @@
 # Build on every push and PR.
 #
 # - Pulls ghcr.io/specir/speccompiler:latest (bundles Lua, Pandoc,
-#   PlantUML, the sw_docs model, and the reqif.specir Python CLI).
-# - Builds HTML and DOCX via the in-container core binary.
-# - Exports ReqIF for each spec (srs, sdd, svc).
-# - Uploads HTML, DOCX, ReqIF, and the SQLite IR as workflow artifacts.
+#   PlantUML, and the sw_docs model).
+# - Builds HTML and DOCX via the in-container specc entrypoint.
+# - Uploads HTML, DOCX, and the SQLite IR as workflow artifacts.
 # - On pushes to main AND on tag pushes: deploys HTML to GitHub Pages
 #   (last deploy wins; the `pages` concurrency group serializes them).
-# - On tag pushes: also creates a GitHub Release with the DOCX and
-#   ReqIF attached.
+# - On tag pushes: also creates a GitHub Release with the DOCX attached.
 
 name: Build
 
@@ -32,25 +30,15 @@ jobs:
       - name: Pull SpecCompiler image
         run: docker pull "$IMAGE"
 
-      - name: Build specs and export ReqIF
+      - name: Build specs
         run: |
+          rm -rf build
           docker run --rm \
             --user "$(id -u):$(id -g)" \
             -v "${{ github.workspace }}:/workspace" \
             -w /workspace \
-            -e PYTHONPATH=/opt/speccompiler/vendor/python \
             "$IMAGE" \
-            bash -c '
-              set -e
-              /opt/speccompiler/bin/speccompiler-core project.yaml
-              mkdir -p build/reqif
-              for spec in srs sdd svc; do
-                python3 -m reqif.specir export \
-                  --db build/specir.db \
-                  --output "build/reqif/${spec}.reqif" \
-                  --spec-id "${spec}"
-              done
-            '
+            build project.yaml
 
       - name: Upload HTML artifact
         uses: actions/upload-artifact@v4
@@ -64,13 +52,6 @@ jobs:
         with:
           name: docx
           path: build/docx/
-          if-no-files-found: error
-
-      - name: Upload ReqIF artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: reqif
-          path: build/reqif/
           if-no-files-found: error
 
       - name: Upload SpecIR database artifact
@@ -131,17 +112,10 @@ jobs:
           name: docx
           path: dist/
 
-      - name: Download ReqIF artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: reqif
-          path: dist/
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/*.docx
-            dist/*.reqif
           generate_release_notes: true
           fail_on_unmatched_files: true

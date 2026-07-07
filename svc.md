@@ -4,6 +4,8 @@
 
 Confirmar que o alarme é ativado quando o horário corrente coincide com o horário programado.
 
+> objective: Verificar o disparo do alarme na coincidência entre horário corrente e horário programado.
+
 > verification_method: Test
 
 > input: [dic:horario-programado](#) 06:30:00 e [dic:horario-corrente](#) avançando a partir de 06:29:58
@@ -18,6 +20,8 @@ Confirmar que o alarme é ativado quando o horário corrente coincide com o hor�
 
 Confirmar a contagem de horas, minutos e segundos a partir do *tick* periódico.
 
+> objective: Verificar que o firmware mantém a contagem de tempo correta após uma sequência de ticks.
+
 > verification_method: Test
 
 > input: Sequência de 3.600 ocorrências do [dic:tick](#) a partir de 06:00:00
@@ -31,6 +35,8 @@ Confirmar a contagem de horas, minutos e segundos a partir do *tick* periódico.
 ## VC: Verificação do Mostrador @DP-002
 
 Confirmar a atualização do mostrador na mudança do horário exibido.
+
+> objective: Verificar que o mostrador reflete a mudança do horário corrente.
 
 > verification_method: Test
 

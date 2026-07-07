@@ -6,15 +6,17 @@ Especificação de requisitos do firmware de um relógio digital, derivada de um
 
 ## Dicionário de Dados
 
-### DIC: Horário Corrente
+### DIC: Horario Corrente
 
 > domain: tempo
+> term: Horário corrente
 
 Valor interno mantido pelo firmware a partir do *tick* periódico do temporizador, representado como hora de 24 horas no formato HH:MM:SS.
 
-### DIC: Horário Programado
+### DIC: Horario Programado
 
 > domain: tempo
+> term: Horário programado
 
 Valor interno configurado pelo usuário como alvo de disparo do alarme, representado como hora de 24 horas no formato HH:MM:SS.
 
