@@ -1,95 +1,47 @@
-# SDD: Thermal Management Design @SDD-001
+# SDD: Relógio Digital
 
-> version: 1.0
+## FD: Subsistema de Alarme @AL-004
 
-> date: 2026-05-24
+> traceability: [AL-001](@)
 
-> status: Draft
+A cada segundo, o subsistema compara o [dic:horario-corrente](#) com o [dic:horario-programado](#) e ativa o alarme na coincidência. Alocado em [AL-005](@).
 
-> subtitle: Software Design Description
-
-> author: SpecCompiler Demo
-
-## COVER: Cover @SDD-COVER
-
-## Table of Contents
-
-`toc:`
-
-A small example design for the thermal management subsystem. The
-Controller polls the Temperature Sensor; on overheat it records the
-event and asks the Safety Manager to enter safe mode.
-
-```puml:fig-thermal-overview{caption="Overheat detection and safe-mode transition sequence."}
+```puml:fig-alarm-fd{caption="Fluxo funcional mínimo do subsistema de alarme."}
 @startuml
-skinparam backgroundColor #FFFFFF
-skinparam defaultFontSize 11
-skinparam sequence {
-  ArrowColor #333333
-  LifeLineBorderColor #888888
-  ParticipantBorderColor #555555
-  ParticipantBackgroundColor #F4F4F4
-}
-
-participant "TempSensor"   as TS
-participant "Controller"   as CTL
-participant "SafetyManager" as SM
-participant "EventLog"     as EL
-
-loop every 10 ms
-  TS -> CTL : read()
-  activate CTL
-  alt temperature > limit
-    CTL -> EL : record(OVERHEAT)
-    CTL -> SM : enterSafeMode()
-  end
-  deactivate CTL
-end
+start
+:Ler horário corrente;
+:Ler horário programado;
+if (coincidem?) then (sim)
+  :Ativar alarme;
+else (não)
+  :Manter alarme inativo;
+endif
+stop
 @enduml
 ```
 
-## DD: Use polling rather than interrupts @DD-001
+## FD: Subsistema de Tempo @TM-004
 
-The temperature sensor is polled at a fixed cadence from the
-Controller rather than driven by interrupts on threshold crossings.
-The per-tick budget below allocates the 10 ms polling window across
-the sensor read, threshold check, log dispatch, safety dispatch, and
-remaining slack for jitter.
+> traceability: [TM-001](@)
 
-```chart:chart-latency-budget{caption="Per-tick latency budget for the 10 ms polling loop (ms)."}
-{
-  "xAxis": { "type": "category", "data": ["sensor read", "threshold check", "log dispatch", "safety dispatch", "slack"] },
-  "yAxis": { "type": "value", "name": "ms" },
-  "series": [{ "type": "bar", "data": [2, 1, 1.5, 2.5, 3], "itemStyle": { "color": "#5470c6" } }]
-}
+O subsistema converte o *tick* periódico em contagem de horas, minutos e segundos. Alocado em [TM-005](@).
+
+## CSU: alarm.c @AL-005
+
+> file_path: firmware/alarm.c
+
+> language: C
+
+> implements: [alarm_check](@), [time_matches](@), [alarm_init](@)
+
+## CSU: time_manager.c @TM-005
+
+> file_path: firmware/time_manager.c
+
+> language: C
+
+> implements: [time_manager_tick](@), [time_manager_get_time](@), [time_manager_init](@)
+
+```{.include}
+symbols.md
 ```
-
-> rationale: Polling avoids interrupt-storm risk when the reading hovers near the threshold and keeps timing analysis simple — a single periodic tick covers both the sensor read and the dispatch to the Safety Manager.
-
-> status: Approved
-
-## LLR: Poll temperature at 10 ms @LLR-001
-
-The Controller shall read the temperature sensor every 10 ms ± 1 ms.
-
-> rationale: 10 ms is the longest sample interval that still meets the safe-mode entry deadline from threshold crossing, with margin for jitter.
-
-> verification_method: Test
-
-> traceability: [HLR-042](@)
-
-> status: Draft
-
-## LLR: Record overheat event before mode transition @LLR-002
-
-When an overheat is detected, the Controller shall write the overheat
-event to the EventLog before invoking `enterSafeMode()` on the
-Safety Manager.
-
-> rationale: Ordering guarantees the event survives any subsequent safe-mode behaviour that may halt non-essential logging subsystems.
-
-> verification_method: Inspection
-
-> traceability: [HLR-043](@)
-
-> status: Draft

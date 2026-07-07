@@ -1,0 +1,87 @@
+[
+  {
+    "directory": ".",
+    "file": "clock_main.c",
+    "arguments": [
+      "clang",
+      "-c",
+      "-target", "arm-none-eabi",
+      "-mcpu=cortex-m4",
+      "-mthumb",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-I.",
+      "clock_main.c",
+      "-o", "clock_main.o"
+    ]
+  },
+  {
+    "directory": ".",
+    "file": "time_manager.c",
+    "arguments": [
+      "clang",
+      "-c",
+      "-target", "arm-none-eabi",
+      "-mcpu=cortex-m4",
+      "-mthumb",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-I.",
+      "time_manager.c",
+      "-o", "time_manager.o"
+    ]
+  },
+  {
+    "directory": ".",
+    "file": "display_controller.c",
+    "arguments": [
+      "clang",
+      "-c",
+      "-target", "arm-none-eabi",
+      "-mcpu=cortex-m4",
+      "-mthumb",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-I.",
+      "display_controller.c",
+      "-o", "display_controller.o"
+    ]
+  },
+  {
+    "directory": ".",
+    "file": "button_controller.c",
+    "arguments": [
+      "clang",
+      "-c",
+      "-target", "arm-none-eabi",
+      "-mcpu=cortex-m4",
+      "-mthumb",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-I.",
+      "button_controller.c",
+      "-o", "button_controller.o"
+    ]
+  },
+  {
+    "directory": ".",
+    "file": "alarm.c",
+    "arguments": [
+      "clang",
+      "-c",
+      "-target", "arm-none-eabi",
+      "-mcpu=cortex-m4",
+      "-mthumb",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-I.",
+      "alarm.c",
+      "-o", "alarm.o"
+    ]
+  }
+]

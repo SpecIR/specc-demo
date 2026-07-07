@@ -1,47 +1,47 @@
-# SVC: Thermal Management Verification @SVC-001
+# SVC: Relógio Digital
 
-> version: 1.0
+## VC: Verificação do Disparo do Alarme @AL-002
 
-> date: 2026-05-24
-
-> status: Draft
-
-> subtitle: Software Verification Cases
-
-> author: SpecCompiler Demo
-
-## COVER: Cover @SVC-COVER
-
-## Table of Contents
-
-`toc:`
-
-## VC: Verify safe-mode transition @VC-020
-
-> objective: Exercise the controller above the thermal threshold and confirm the transition to safe mode.
+Confirmar que o alarme é ativado quando o horário corrente coincide com o horário programado.
 
 > verification_method: Test
 
-> pass_criteria:
-> - Controller enters safe mode within the specified time bound.
+> input: [dic:horario-programado](#) 06:30:00 e [dic:horario-corrente](#) avançando a partir de 06:29:58
 
-> status: Draft
+> procedure: Configurar o alarme, avançar o *tick* até 06:30:00 e observar a saída do alarme
 
-> traceability: [HLR-042](@) [HLR-043](@)
+> expected: Alarme ativo no *tick* em que os horários coincidem
 
-## VC: Verify thermal-state classification @VC-021
+> traceability: [AL-001](@)
 
-> objective: Exercise the classifier across the boundary readings (<=60, 60-80, >80 C) and verify the resulting state matches the decision table.
+## VC: Verificação da Manutenção do Horário @TM-002
+
+Confirmar a contagem de horas, minutos e segundos a partir do *tick* periódico.
 
 > verification_method: Test
 
-> pass_criteria:
-> - Each boundary reading produces the state declared in tbl-thermal-mode.
+> input: Sequência de 3.600 ocorrências do [dic:tick](#) a partir de 06:00:00
 
-> status: Draft
+> procedure: Avançar os *ticks* e ler o [dic:horario-corrente](#) ao final da sequência
 
-> traceability: [HLR-044](@)
+> expected: [dic:horario-corrente](#) igual a 07:00:00
 
-## Verification Matrix
+> traceability: [TM-001](@)
+
+## VC: Verificação do Mostrador @DP-002
+
+Confirmar a atualização do mostrador na mudança do horário exibido.
+
+> verification_method: Test
+
+> input: Virada de minuto no [dic:horario-corrente](#)
+
+> procedure: Avançar o *tick* através da virada e capturar o conteúdo do mostrador
+
+> expected: Dígitos de minuto apresentando o novo valor
+
+> traceability: [DP-001](@)
+
+## Matriz de Rastreabilidade
 
 `traceability_matrix:`

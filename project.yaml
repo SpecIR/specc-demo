@@ -1,19 +1,14 @@
 # SpecCompiler demo project — sw_docs model.
-# HLR, VC, LLR, DD, traces_to, traceability_matrix and the PlantUML
-# float type all come from the model unchanged; the demo only edits
-# source files.
+# Digital-clock firmware specification: the running example of the
+# SpecCompiler dissertation. SRS/SDD/SVC/TRR plus SYMBOL objects
+# extracted from C sources by scripts/extract_symbols.py (libclang).
 #
-# Validation suppressions disable sw_docs policies that depend on
-# object types this small demo does not use (SF, FD, CSC, CSU, TR)
-# or that would conflict with the demo's simplifications:
-#  - LLRs are not yet covered by VCs.
-#  - The architectural-overview PlantUML diagram has no parent object.
-# Active checks: traceability_hlr_to_vc, traceability_vc_to_hlr,
-# plus all generic checks (cast, enum, missing-required, etc.).
+# Suppressions disable sw_docs policies whose object types this demo
+# does not use (SF, CSC allocation chains).
 
 project:
-  code: DEMO_THERMAL
-  name: SpecCompiler demo
+  code: CLOCK
+  name: "SpecCompiler demo: relógio digital"
 
 template: sw_docs
 output_dir: build/
@@ -22,6 +17,7 @@ doc_files:
   - srs.md
   - sdd.md
   - svc.md
+  - tr.md
 
 outputs:
   - format: html5
@@ -37,15 +33,10 @@ html5:
 
 validation:
   traceability_hlr_allocation: ignore
-  traceability_llr_to_vc: ignore
-  traceability_tr_to_vc: ignore
   traceability_fd_to_csc: ignore
-  traceability_fd_to_csu: ignore
-  traceability_csc_to_fd: ignore
-  traceability_csu_to_fd: ignore
-  float_orphan: ignore
+  traceability_hlr_to_vc: error
 
 logging:
-  level: info
+  level: warn
   format: console
   color: true

@@ -1,73 +1,45 @@
-# SRS: Thermal Management Requirements @SRS-001
+# SRS: Relógio Digital
 
-> version: 1.0
+## Escopo
 
-> date: 2026-05-24
+Especificação de requisitos do firmware de um relógio digital, derivada de um exemplo público. O firmware mantém o horário a partir de um *tick* periódico e dispara um alarme programável.
 
-> status: Draft
+## Dicionário de Dados
 
-> subtitle: Software Requirements Specification
+### DIC: Horário Corrente
 
-> author: SpecCompiler Demo
+> domain: tempo
 
-## COVER: Cover @SRS-COVER
+Valor interno mantido pelo firmware a partir do *tick* periódico do temporizador, representado como hora de 24 horas no formato HH:MM:SS.
 
+### DIC: Horário Programado
 
-## Functional Requirements
+> domain: tempo
 
-A small example illustrating two requirements for the thermal
-management subsystem of an embedded controller.
+Valor interno configurado pelo usuário como alvo de disparo do alarme, representado como hora de 24 horas no formato HH:MM:SS.
 
-## HLR: Detect overheat @HLR-042
+### DIC: Tick
 
-The controller shall enter safe mode when temperature
-exceeds the limit.
+> term: tick
 
-> status: Draft
+Interrupção periódica de 1 Hz gerada pelo temporizador do sistema.
 
-> priority: High
-
-> rationale: Prevent thermal damage.
-
-## HLR: Log overheat event @HLR-043
-
-The controller shall record an overheat event before
-entering safe mode.
-
-> status: Draft
+## HLR: Disparo do Alarme @AL-001
 
 > priority: High
 
-> rationale: Provide reviewable fault evidence.
+O firmware deve ativar o alarme quando o [dic:horario-corrente](#) coincidir com o [dic:horario-programado](#).
 
-## HLR: Classify thermal state by reading @HLR-044
+## HLR: Manutenção do Horário @TM-001
 
-The controller shall map each temperature reading to a thermal-state
-classification according to the decision table below.
+O firmware deve manter horas, minutos e segundos atualizados a cada [dic:tick](#) do temporizador.
 
-```list-table:tbl-thermal-mode{caption="Thermal-state classification by temperature reading."}
-> header-rows: 1
-> aligns: l,l,l
+> rationale: A contagem local dispensa hardware de relógio dedicado.
 
-* - Condition
-  - Previous state
-  - Resulting state
-* - reading <= 60 C
-  - any
-  - Normal
-* - 60 C < reading <= 80 C
-  - Normal
-  - Caution
-* - 60 C < reading <= 80 C
-  - Caution or Safe Mode
-  - unchanged
-* - reading > 80 C
-  - any
-  - Safe Mode
-```
+> status: Approved
 
-> status: Draft
+## HLR: Atualização do Mostrador @DP-001
 
 > priority: Mid
 
-> rationale: A pure-function classification keeps the state machine deterministic and easy to test in isolation.
+O firmware deve atualizar o mostrador de sete segmentos a cada mudança de horário exibido.

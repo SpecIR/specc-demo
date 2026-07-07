@@ -1,91 +1,47 @@
 # specc-demo
 
-Minimal example project for [SpecCompiler](https://github.com/SpecIR/SpecCompiler) — a typed,
+Example project for [SpecCompiler](https://github.com/SpecIR/SpecCompiler) — a typed,
 compiled specification authored in CommonSpec (a small convention layer
 over CommonMark).
 
+This is the running example of the SpecCompiler dissertation: the
+specification of a digital-clock firmware, compiled with the `sw_docs`
+model.
+
 > Click **Use this template** above to scaffold your own SpecCompiler
-> project from this layout. The CI workflow is portable: it pulls the
-> public upstream image and uses your fork's repo settings (Pages URL,
-> tags, releases) automatically.
+> project from this layout.
 
-Three source files:
+Source files:
 
-- [`srs.md`](srs.md) — Software Requirements Specification with two
-  typed High-Level Requirements (`HLR-042`, `HLR-043`).
-- [`sdd.md`](sdd.md) — Software Design Description with one Design
-  Decision (`DD-001`), two Low-Level Requirements (`LLR-001`, `LLR-002`)
-  tracing back to the HLRs, and a PlantUML sequence diagram rendered
-  into the output.
-- [`svc.md`](svc.md) — Software Verification Cases with one VC
-  (`VC-020`) that covers both HLRs, plus a generated traceability
-  matrix.
+- [`srs.md`](srs.md) — requirements (`AL-001`, `TM-001`, `DP-001`) and
+  the data dictionary, referenced inline via `[dic:...](#)`.
+- [`sdd.md`](sdd.md) — design (`AL-004`, `TM-004`), software units
+  (`AL-005`, `TM-005`) and the code symbols they implement.
+- [`svc.md`](svc.md) — verification cases with input/procedure/expected
+  and the auto-generated traceability matrix (`traceability_matrix:`).
+- [`tr.md`](tr.md) — test results (`Pass`/`Fail`); in a real pipeline
+  these objects are generated from JUnit XML reports.
+- [`symbols.md`](symbols.md) — **generated, do not edit**: SYMBOL
+  objects extracted from the firmware C sources by
+  [`scripts/extract_symbols.py`](scripts/extract_symbols.py) (libclang),
+  including the `calls:` graph used for impact analysis.
+- [`firmware/`](firmware/) — the digital-clock C sources the
+  specification describes (`alarm.c`, `time_manager.c`, ...), with the
+  `compile_commands.json` used by the symbol extractor. The `CSU`
+  objects in `sdd.md` point at these files via `file_path`.
 
-[`project.yaml`](project.yaml) wires them into the stock `sw_docs`
-model. Compilation produces:
+Build:
 
-- `build/www/` — interactive HTML with cross-document anchors and
-  rendered diagrams.
-- `build/docx/` — formal-review DOCX deliverables.
-- `build/specir.db` — the SQLite intermediate representation
-  (compiled facts queryable directly).
-
-## Local build
-
-Requires `specc` installed locally:
-
-```
+```sh
 specc build project.yaml
 ```
 
-Or via Docker, no local install needed:
+Regenerate symbols (requires `python3-clang`):
 
-```
-docker run --rm -v "$PWD:/workspace" -w /workspace \
-  ghcr.io/specir/speccompiler:latest \
-  /opt/speccompiler/bin/speccompiler-core project.yaml
+```sh
+python3 scripts/extract_symbols.py firmware symbols.md
 ```
 
-## Continuous integration
-
-[`.github/workflows/build.yml`](.github/workflows/build.yml) runs on
-every push and PR. It pulls
-[`ghcr.io/specir/speccompiler:latest`](https://github.com/SpecIR/SpecCompiler/pkgs/container/speccompiler),
-builds HTML and DOCX, and exports ReqIF for all three specs with
-`python3 -m reqif.specir export`.
-
-Workflow artifacts on every successful run:
-
-| Artifact | Contents |
-|---|---|
-| `html` | `srs.html`, `sdd.html`, `svc.html`, `index.html` (web app) |
-| `docx` | `srs.docx`, `sdd.docx`, `svc.docx` |
-| `reqif` | `srs.reqif`, `sdd.reqif`, `svc.reqif` |
-| `specir-db` | `specir.db` (SQLite IR) |
-
-If `speccompiler-core` exits non-zero (missing trace link, invalid
-date cast, bad enum value), the workflow fails and no artifacts are
-uploaded.
-
-### GitHub Pages
-
-On pushes to `main` *and* on every tag push, the HTML site is
-deployed to GitHub Pages — for the upstream repo, that lands at
-<https://specir.github.io/specc-demo/>; for a fork or a
-template-copy, GitHub uses your own `<owner>.github.io/<repo>/` URL.
-Last deploy wins; the `pages` concurrency group serializes them.
-
-**One-time repo setup:** Settings → Pages → **Source: GitHub
-Actions** (not "Deploy from a branch"). Without this, the
-deploy-pages job fails with a 404.
-
-### Releases
-
-On any tag push (`git tag v0.1 && git push origin v0.1`), the
-workflow creates a GitHub Release named after the tag, with all
-three `.docx` files and all three `.reqif` files attached as release
-assets and auto-generated release notes from the commit log.
-
-## License
-
-Apache 2.0.
+Identifiers use a module + sequence scheme (`AL-001`) instead of
+embedding the object type: the type comes from the CommonSpec
+annotation (`## HLR: ... @AL-001`), not from the identifier.
